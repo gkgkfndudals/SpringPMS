@@ -1,0 +1,24 @@
+package hu.common;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
+
+public class FileUtil {
+	static final Logger LOGGER = LoggerFactory.getLogger(AdminInterceptor.class);
+	static final Integer IMG_WIDTH = 100;
+	static final Integer IMG_HEIGHT = 100;
+	
+	/**
+	 * 멀티 파일 업로드.
+	 */
+	public List<FileVO> saveAllFiles(List<MultipartFile> upfiles) {
+		List<FileVO> filelist = new ArrayList<FileVO>();
+		String filePath = LocaleMessage.getMessage(info.filePath);
+		
+		return filelist;
+	}
+}
