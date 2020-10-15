@@ -1,0 +1,18 @@
+package hu.admin.organ;
+
+import java.util.List;
+
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Service
+public class DeptSvc {
+	
+	@Autowired
+	private SqlSessionTemplateplate sqlSession;
+	
+	public List<?> selectDepartment() {
+		return sqlSession.selectList("selectDepartment");
+	}
+	
+}

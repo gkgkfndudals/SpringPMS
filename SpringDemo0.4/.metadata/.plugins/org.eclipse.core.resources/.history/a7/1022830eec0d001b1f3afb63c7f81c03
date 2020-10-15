@@ -1,0 +1,10 @@
+package hu.common;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class FileUtil {
+	static final Logger LOGGER = LoggerFactory.getLogger(AdminInterceptor.class);
+	static final Integer IMG_WIDTH = 100;
+	static final Integer IMG_HEIGHT = 100;
+}

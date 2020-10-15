@@ -1,0 +1,150 @@
+package hu.board;
+
+import java.util.HashMap;
+import java.util.List;
+
+import javax.transaction.TransactionalException;
+
+import org.mybatis.spring.SqlSessionTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import hu.admin.board.BoardGroupVO;
+import hu.common.Field3VO;
+import hu.common.FileVO;
+
+@Service
+public class BoardSvc {
+
+	@Autowired
+	private SqlSessionTemplate sqlSession;
+	@Autowired
+	private DataSourceTransactionManager txManager;
+	
+	static final Logger LOGGER = LoggerFactory.getLogger(BoardSvc.class);
+	
+	 /** 
+     * 게시판 정보 (그룹).
+     */
+	public BoardGroupVO selectBoardGroupOne4Used(String param) {
+		return sqlSession.selectOne("selectBoardGroupOne4Used", param);
+	}
+	
+	/** ------------------------------------------
+     * 게시판.
+     */
+	
+	public Integer selectBoardCount(BoardSearchVO param) {
+		return sqlSession.selectOne("selectBoardCount", param);
+	}
+	
+	public List<?> selectBoardList(BoardSearchVO param){
+		return sqlSession.selectList("selectBoardList",param);
+	}
+	
+	public List<?> selectNoticeList(BoardSearchVO param) {
+		return sqlSession.selectList("selectNoticeList", param);
+	}
+	
+	/**
+	 * 게시판 글 저장
+	 */
+	public void insertBoard(BoardVO param, List<FileVO> filelist, String[] fileno) {
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionStatus status = txManager.getTransaction(def);
+		
+		try {
+			if(param.getBrdno() == null || "".equals(param.getBrdno())) {
+				sqlSession.insert("insertBoard", param);
+			} else {
+				sqlSession.update("updateBoard", param);
+			}
+			
+			if(fileno != null) {							//게시물 수정 시 기존 파일을 다 지우고 다시 파일 정보를 넣기 위해서 삭제한다.
+				HashMap<String, String[]> fparam = new HashMap<String, String[]>();
+				fparam.put("fileno", fileno);
+				sqlSession.insert("deleteBoardFile", fparam);
+			}
+			
+			for(FileVO f : filelist) {						//
+				f.setParentPK(param.getBrdno());
+				sqlSession.insert("insertBoardFile", f);
+			}
+			txManager.commit(status);	
+		} catch(TransactionalException ex) {
+			txManager.rollback(status);
+			LOGGER.error("insertBoard");
+		}
+	}
+	
+	/**
+	 * 게시판 한개 읽었을때 정보들 select
+	 */
+	public BoardVO selectBoardOne(Field3VO param) {
+		return sqlSession.selectOne("selectBoardOne", param);
+	}
+	
+	 /**
+     * 게시판 수정/삭제 권한 확인. 
+     */
+	public String selectBoardAuthChk (BoardVO param) {
+		return sqlSession.selectOne("selectBoardAuthChk", param);
+	}
+	
+	public void updateBoardRead(Field3VO param) {  			//게시판 조회한 수를 구하기 위해서
+		sqlSession.insert("updateBoardRead", param);
+	}
+	
+	public void deleteBoardOne(String param) {
+		sqlSession.delete("deleteBoardOne", param);
+	}
+	
+	/**
+	 * 게시판 글 한개 클릭 시 하단에 나오는 파일 리스트, 댓글 리스트
+	 */
+	public List<?> selectBoardFileList(String param) {
+		return sqlSession.selectList("selectBoardFileList", param);
+	}
+	
+	public List<?> selectBoardReplyList(String param) {
+		return sqlSession.selectList("selectBoardReplyList", param);
+	}
+	
+	/**
+     * 댓글 저장. 
+     */
+    public BoardReplyVO insertBoardReply(BoardReplyVO param) {
+        if (param.getReno() == null || "".equals(param.getReno())) {
+            if (param.getReparent() != null) {
+                BoardReplyVO replyInfo = sqlSession.selectOne("selectBoardReplyParent", param.getReparent());
+                param.setRedepth(replyInfo.getRedepth());
+                param.setReorder(replyInfo.getReorder() + 1);
+                sqlSession.selectOne("updateBoardReplyOrder", replyInfo);
+            } else {
+                Integer reorder = sqlSession.selectOne("selectBoardReplyMaxOrder", param.getBrdno());
+                param.setReorder(reorder);
+            }
+            
+            sqlSession.insert("insertBoardReply", param);
+        } else {
+            sqlSession.insert("updateBoardReply", param);
+        }
+        return sqlSession.selectOne("selectBoardReplyOne", param.getReno());
+    }   
+	
+	
+	/**
+     * 댓글 수정/삭제 권한 확인. 
+     */
+    public String selectBoardReplyAuthChk(BoardReplyVO param) {
+        return sqlSession.selectOne("selectBoardReplyAuthChk", param);
+    }
+	
+}

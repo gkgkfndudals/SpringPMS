@@ -1,0 +1,3 @@
+INDEX VERSION 1.131+C:\Users\HUSTAR_19\Desktop\SpringDemo\.metadata\.plugins\org.eclipse.jdt.core
+76749781.index
+3609708485.index
