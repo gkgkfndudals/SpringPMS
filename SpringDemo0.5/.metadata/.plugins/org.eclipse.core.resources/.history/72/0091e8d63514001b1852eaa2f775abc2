@@ -1,0 +1,41 @@
+package hu.project;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import hu.common.SearchVO;
+import hu.etc.EtcSvc;
+
+@Controller
+public class ProjectCtr {
+
+	@Autowired
+	private ProjectSvc projectSvc;
+	
+	@Autowired
+	private EtcSvc etcSvc;
+	
+	/**
+	 * 프로젝트 리스트
+	 */
+	@RequestMapping(value = "/projectList")
+	public String projectList(HttpServletRequest request, SearchVO searchVO, ModelMap modelMap) {
+		String userno = request.getSession().getAttribute("userno").toString();
+		
+		Integer alertcount = etcSvc.selectAlertCount(userno);
+		modelMap.addAttribute("alertcount", alertcount);
+		
+		searchVO.pageCalculate(projectSvc.selectProjectCount(searchVO) ); //startRow, endRow
+		List<?> listview = projectSvc.selectProjectList(searchVO);
+		
+		
+		
+		return "project/ProjectList";
+	}
+}

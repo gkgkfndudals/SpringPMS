@@ -1,0 +1,65 @@
+package hu.admin.organ;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import hu.common.TreeMaker;
+import hu.etc.EtcSvc;
+
+@Controller
+public class UserCtr {
+
+	@Autowired
+	private DeptSvc deptSvc;
+	
+	@Autowired
+	private UserSvc userSvc;
+	
+	@Autowired
+	private EtcSvc etcSvc;
+	
+	/**
+	 * 리스트
+	 */
+	@RequestMapping(value = "/adUser")
+	public String user(HttpServletRequest request, ModelMap modelMap) {
+		String userno = request.getSession().getAttribute("userno").toString();
+		
+		Integer alertcount = etcSvc.selectAlertCount(userno);
+		modelMap.addAttribute("alertcount", alertcount);
+		
+		List<?> listview = deptSvc.selectDepartment();
+		
+		TreeMaker tm = new TreeMaker();
+		String treeStr = tm.makeTreeByHierarchy(listview);
+		
+		modelMap.addAttribute("treeStr", treeStr);
+		
+		return "admin/organ/User";
+	}
+	
+	/**
+	 * 지정된 부서의 사용자 리스트
+	 */
+	public String common_UserList(ModelMap modelMap, String deptno) {
+		List<?> listview = userSvc.selectUserList(deptno);
+		modelMap.addAttribute("listview", listview);
+		return "admin/organ/UserList";
+	}
+	
+	/**
+	 * User 리스트
+	 */
+	@RequestMapping(value = "/adUserList")
+	public String userList(HttpServletRequest request, ModelMap modelMap) {
+		String deptno = request.getParameter("deptno");
+		
+		return common_UserList(modelMap, deptno);
+	}
+}

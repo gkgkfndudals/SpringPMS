@@ -1,0 +1,12 @@
+package hu.project;
+
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class ProjectSvc {
+
+	@Autowired
+	private SqlSessionTemplate sqlSession;
+}
